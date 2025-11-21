@@ -6,7 +6,7 @@ export const INITIAL_WALLETS: Wallet[] = [
     name: 'Principal',
     balance: 2500.50,
     currency: 'EUR',
-    color: 'bg-orange-500',
+    color: 'bg-primary-500',
   },
   {
     id: 'w2',
@@ -20,7 +20,7 @@ export const INITIAL_WALLETS: Wallet[] = [
     name: 'Efectivo',
     balance: 120.00,
     currency: 'EUR',
-    color: 'bg-green-500',
+    color: 'bg-teal-500',
   }
 ];
 
@@ -55,13 +55,13 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
 ];
 
 export const CATEGORY_COLORS: Record<Category, string> = {
-  [Category.FOOD]: '#f97316', // Orange
+  [Category.FOOD]: '#10b981', // Emerald
   [Category.TRANSPORT]: '#3b82f6', // Blue
-  [Category.HOUSING]: '#ef4444', // Red
-  [Category.ENTERTAINMENT]: '#8b5cf6', // Purple
+  [Category.HOUSING]: '#f59e0b', // Amber
+  [Category.ENTERTAINMENT]: '#8b5cf6', // Violet
   [Category.SHOPPING]: '#ec4899', // Pink
-  [Category.HEALTH]: '#10b981', // Emerald
-  [Category.SALARY]: '#84cc16', // Lime
-  [Category.INVESTMENT]: '#06b6d4', // Cyan
-  [Category.OTHER]: '#6b7280', // Gray
+  [Category.HEALTH]: '#ef4444', // Red
+  [Category.SALARY]: '#14b8a6', // Teal
+  [Category.INVESTMENT]: '#6366f1', // Indigo
+  [Category.OTHER]: '#64748b', // Slate
 };

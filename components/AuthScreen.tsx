@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { loginUser, registerUser } from '../services/storageService';
+import { loginUser, registerUser, loginWithGoogleMock } from '../services/storageService';
 import { User } from '../types';
-import { ArrowRight, Lock, Mail, User as UserIcon, AlertCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, Lock, Mail, User as UserIcon, AlertCircle, Sparkles, CloudLightning } from 'lucide-react';
 
 interface AuthScreenProps {
   onAuthSuccess: (user: User) => void;
@@ -39,27 +39,55 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+      setLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simular popup
+      const user = loginWithGoogleMock();
+      onAuthSuccess(user);
+      setLoading(false);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[600px]">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-[family-name:var(--font-inter)]">
+      <div className="bg-white w-full max-w-5xl rounded-4xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[650px]">
         
         {/* Left Side: Form */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center relative">
             <div className="mb-8">
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-orange-500/30 mb-4">
-                    K
+                <div className="flex items-center space-x-2 mb-6">
+                    <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/30">
+                        K
+                    </div>
+                    <span className="text-2xl font-bold text-slate-800 tracking-tight">Kapital</span>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">
                     {isLogin ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
                 </h1>
-                <p className="text-gray-500 mt-2">
-                    {isLogin ? 'Gestiona tus finanzas con inteligencia.' : 'Empieza a controlar tu dinero hoy mismo.'}
+                <p className="text-slate-500">
+                    {isLogin ? 'Tus finanzas, simplificadas y sincronizadas.' : 'Únete a Kapital y toma el control hoy.'}
                 </p>
+            </div>
+
+            {/* Google Button */}
+            <button 
+                onClick={handleGoogleLogin}
+                type="button"
+                className="w-full flex items-center justify-center space-x-3 border border-slate-200 py-3.5 rounded-2xl hover:bg-slate-50 transition-colors mb-6 group"
+            >
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+                <span className="text-slate-700 font-medium group-hover:text-slate-900">Continuar con Google</span>
+            </button>
+
+            <div className="relative flex py-2 items-center mb-6">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-semibold">O con email</span>
+                <div className="flex-grow border-t border-slate-200"></div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm flex items-center space-x-2 animate-fade-in">
+                    <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm flex items-center space-x-2 animate-fade-in border border-red-100">
                         <AlertCircle size={16} />
                         <span>{error}</span>
                     </div>
@@ -67,11 +95,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
 
                 {!isLogin && (
                     <div className="relative group">
-                        <UserIcon className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+                        <UserIcon className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
                         <input 
                             type="text" 
                             placeholder="Nombre completo"
-                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition-all"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
@@ -79,11 +107,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
                 )}
 
                 <div className="relative group">
-                    <Mail className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+                    <Mail className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
                     <input 
                         type="email" 
                         placeholder="Correo electrónico"
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -91,11 +119,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
                 </div>
 
                 <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+                    <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
                     <input 
                         type="password" 
                         placeholder="Contraseña"
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none transition-all"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -105,7 +133,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
                 <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full bg-orange-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-orange-600/20 hover:bg-orange-700 hover:shadow-orange-600/40 transition-all flex items-center justify-center space-x-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full bg-primary-600 text-white py-3.5 rounded-2xl font-bold shadow-xl shadow-primary-600/20 hover:bg-primary-700 hover:shadow-primary-600/40 transition-all flex items-center justify-center space-x-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -119,11 +147,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
             </form>
 
             <div className="mt-8 text-center">
-                <p className="text-gray-500 text-sm">
+                <p className="text-slate-500 text-sm">
                     {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
                     <button 
                         onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                        className="text-orange-600 font-semibold hover:underline"
+                        className="text-primary-600 font-bold hover:text-primary-700 transition-colors"
                     >
                         {isLogin ? 'Regístrate' : 'Inicia sesión'}
                     </button>
@@ -132,43 +160,50 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
         </div>
 
         {/* Right Side: Visuals */}
-        <div className="hidden md:block w-1/2 bg-gradient-to-br from-orange-500 to-red-600 relative overflow-hidden text-white p-12">
-            <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div className="hidden md:block w-1/2 bg-primary-600 relative overflow-hidden text-white p-12">
+            {/* Abstract Shapes */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse"></div>
+            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
             
-            {/* Decorative Circles */}
-            <div className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute bottom-20 left-10 w-64 h-64 bg-yellow-500/20 rounded-full blur-3xl"></div>
-
             <div className="relative z-10 h-full flex flex-col justify-between">
                 <div className="bg-white/20 backdrop-blur-md inline-flex items-center space-x-2 px-4 py-2 rounded-full self-start border border-white/10">
                     <Sparkles size={16} />
                     <span className="text-sm font-medium">AI Powered Finance</span>
                 </div>
 
-                <div>
-                    <h2 className="text-4xl font-bold mb-6 leading-tight">
-                        Toma el control de<br/>tu futuro financiero.
+                <div className="space-y-8">
+                    <h2 className="text-5xl font-bold mb-6 leading-tight tracking-tight">
+                        Gestiona.<br/>Sincroniza.<br/>Crece.
                     </h2>
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-4 bg-white/10 p-4 rounded-2xl border border-white/5 backdrop-blur-sm">
-                            <div className="p-2 bg-white/20 rounded-lg">
-                                <div className="w-6 h-6 rounded-full border-2 border-white" />
-                            </div>
-                            <div>
-                                <p className="font-bold">Análisis de Gastos</p>
-                                <p className="text-white/70 text-sm">Detecta patrones en tus compras automáticamente.</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4 bg-white/10 p-4 rounded-2xl border border-white/5 backdrop-blur-sm transform translate-x-4">
-                            <div className="p-2 bg-white/20 rounded-lg">
-                                <div className="w-6 h-6 rounded bg-white" />
-                            </div>
-                            <div>
-                                <p className="font-bold">Escaneo de Recibos</p>
-                                <p className="text-white/70 text-sm">Gemini AI extrae los datos por ti.</p>
-                            </div>
-                        </div>
+                    
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/10">
+                         <div className="flex items-center justify-between mb-4">
+                             <div className="flex items-center space-x-3">
+                                 <div className="p-2 bg-green-400/20 rounded-xl text-green-300">
+                                     <CloudLightning size={20} />
+                                 </div>
+                                 <div>
+                                     <p className="font-bold">Sincronización Cloud</p>
+                                     <p className="text-xs text-white/60">Datos seguros y accesibles</p>
+                                 </div>
+                             </div>
+                             <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                         </div>
+                         <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                             <div className="h-full bg-green-400 w-3/4 rounded-full"></div>
+                         </div>
                     </div>
+
+                     <div className="flex -space-x-4">
+                        {[1,2,3].map(i => (
+                            <div key={i} className="w-10 h-10 rounded-full border-2 border-primary-600 bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                                {i === 3 ? '+' : <UserIcon size={14} />}
+                            </div>
+                        ))}
+                        <div className="pl-6 flex items-center">
+                            <span className="text-sm font-medium text-white/90">Únete a miles de usuarios</span>
+                        </div>
+                     </div>
                 </div>
             </div>
         </div>

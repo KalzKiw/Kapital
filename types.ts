@@ -45,6 +45,8 @@ export interface User {
   name: string;
   email: string;
   password?: string; // In a real app, this would be hashed or handled by auth provider
+  photoURL?: string;
+  provider?: 'email' | 'google';
   hasSeenTutorial?: boolean;
 }
 

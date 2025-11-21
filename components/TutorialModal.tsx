@@ -10,7 +10,7 @@ const steps = [
   {
     title: "Bienvenido a Kapital",
     description: "Tu nuevo centro de mando financiero. Controla tus gastos e ingresos de forma visual y sencilla.",
-    icon: <LayoutDashboard size={48} className="text-orange-500" />,
+    icon: <LayoutDashboard size={48} className="text-primary-500" />,
   },
   {
     title: "Gestiona tus Carteras",
@@ -38,40 +38,38 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative">
+    <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4 backdrop-blur-md animate-fade-in">
+      <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl relative">
         
-        {/* Skip Button */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-sm font-medium z-10"
+          className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 text-sm font-bold z-10"
         >
           Saltar
         </button>
 
         {/* Progress Bar */}
-        <div className="flex h-1 bg-gray-100">
+        <div className="flex h-1.5 bg-slate-100 mx-8 mt-8 rounded-full overflow-hidden">
           {steps.map((_, index) => (
             <div 
               key={index}
-              className={`flex-1 transition-colors duration-300 ${
-                index <= currentStep ? 'bg-orange-500' : 'bg-transparent'
+              className={`flex-1 transition-all duration-500 ${
+                index <= currentStep ? 'bg-primary-500' : 'bg-transparent'
               }`}
             />
           ))}
         </div>
 
-        <div className="p-8 text-center min-h-[400px] flex flex-col justify-center items-center">
-          {/* Animated Icon Container */}
-          <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-8 animate-[bounce_2s_infinite]">
+        <div className="p-8 text-center min-h-[450px] flex flex-col justify-center items-center">
+          <div className="w-28 h-28 bg-slate-50 rounded-full flex items-center justify-center mb-8 animate-[bounce_3s_infinite]">
             {steps[currentStep].icon}
           </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 transition-all duration-300">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4 transition-all duration-300">
             {steps[currentStep].title}
           </h2>
           
-          <p className="text-gray-500 text-lg leading-relaxed mb-8 transition-all duration-300">
+          <p className="text-slate-500 text-lg leading-relaxed mb-8 transition-all duration-300">
             {steps[currentStep].description}
           </p>
 
@@ -79,33 +77,20 @@ const TutorialModal: React.FC<TutorialModalProps> = ({ isOpen, onClose }) => {
              {currentStep > 0 && (
                  <button 
                     onClick={() => setCurrentStep(currentStep - 1)}
-                    className="flex-1 py-3 rounded-xl font-semibold text-gray-500 hover:bg-gray-100 transition-colors"
+                    className="flex-1 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
                  >
                      Atrás
                  </button>
              )}
             <button 
               onClick={handleNext}
-              className="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-orange-600/20 hover:bg-orange-700 transition-all flex items-center justify-center space-x-2"
+              className="flex-1 bg-primary-600 text-white py-4 rounded-2xl font-bold shadow-xl shadow-primary-600/20 hover:bg-primary-700 transition-all flex items-center justify-center space-x-2"
             >
               <span>{currentStep === steps.length - 1 ? 'Empezar' : 'Siguiente'}</span>
               {currentStep === steps.length - 1 ? <Check size={20} /> : <ArrowRight size={20} />}
             </button>
           </div>
         </div>
-
-        {/* Step Indicators */}
-        <div className="pb-6 flex justify-center space-x-2">
-            {steps.map((_, index) => (
-                <div 
-                    key={index} 
-                    className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentStep ? 'bg-orange-500 w-4' : 'bg-gray-300'
-                    }`} 
-                />
-            ))}
-        </div>
-
       </div>
     </div>
   );

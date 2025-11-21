@@ -27,6 +27,45 @@ export const loginUser = (email: string, password: string): User => {
   return safeUser;
 };
 
+export const loginWithGoogleMock = (): User => {
+    // Simulacion de usuario de Google
+    const googleUser: User = {
+        id: 'g_user_12345',
+        name: 'Usuario Google',
+        email: 'usuario@gmail.com',
+        photoURL: 'https://ui-avatars.com/api/?name=Google+User&background=10b981&color=fff',
+        provider: 'google',
+        hasSeenTutorial: false
+    };
+
+    // Check if exists, if not register
+    const usersStr = localStorage.getItem(USERS_KEY);
+    const users: User[] = usersStr ? JSON.parse(usersStr) : [];
+    const existing = users.find(u => u.email === googleUser.email);
+
+    if (!existing) {
+        users.push(googleUser);
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        
+        // Init data
+        const initialWallet: Wallet = {
+            id: 'w1',
+            name: 'Principal',
+            balance: 0,
+            currency: 'EUR',
+            color: 'bg-primary-500',
+        };
+        const initialData: UserData = { wallets: [initialWallet], transactions: [] };
+        localStorage.setItem(DATA_PREFIX + googleUser.id, JSON.stringify(initialData));
+    } else {
+        // If exists, check tutorial status from storage to preserve it
+        googleUser.hasSeenTutorial = existing.hasSeenTutorial;
+    }
+
+    localStorage.setItem(SESSION_KEY, JSON.stringify(googleUser));
+    return googleUser;
+}
+
 export const registerUser = (name: string, email: string, password: string): User => {
   const usersStr = localStorage.getItem(USERS_KEY);
   const users: User[] = usersStr ? JSON.parse(usersStr) : [];
@@ -40,6 +79,7 @@ export const registerUser = (name: string, email: string, password: string): Use
     name,
     email,
     password, // In a real app, never store plain text passwords
+    provider: 'email',
     hasSeenTutorial: false
   };
 
@@ -53,7 +93,7 @@ export const registerUser = (name: string, email: string, password: string): Use
     name: 'Principal',
     balance: 0,
     currency: 'EUR',
-    color: 'bg-orange-500',
+    color: 'bg-primary-500',
   };
 
   const initialData: UserData = {
