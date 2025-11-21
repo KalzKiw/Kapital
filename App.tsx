@@ -1,16 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, ErrorInfo, ReactNode, Component } from 'react';
 import { 
   LayoutDashboard, 
   Wallet as WalletIcon, 
   Settings, 
   Plus, 
   CreditCard,
-  Trash2
+  Trash2,
+  LogOut,
+  User as UserIcon,
+  AlertTriangle
 } from 'lucide-react';
-import { Wallet, Transaction, TransactionType, Category } from './types';
+import { Wallet, Transaction, TransactionType, Category, User } from './types';
 import { INITIAL_WALLETS, INITIAL_TRANSACTIONS } from './constants';
 import Dashboard from './components/Dashboard';
 import TransactionModal from './components/TransactionModal';
+import AuthScreen from './components/AuthScreen';
+import TutorialModal from './components/TutorialModal';
+import { getSessionUser, loadUserData, logoutUser, saveUserData, updateUser } from './services/storageService';
 
 enum Tab {
   DASHBOARD = 'Dashboard',
@@ -18,21 +24,141 @@ enum Tab {
   SETTINGS = 'Ajustes'
 }
 
-const App: React.FC = () => {
+// --- Error Boundary Component ---
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 p-6 text-center">
+          <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={32} />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Algo salió mal</h1>
+            <p className="text-gray-500 mb-4 text-sm">La aplicación ha encontrado un error inesperado.</p>
+            <div className="bg-gray-100 p-4 rounded-xl text-left text-xs font-mono overflow-auto max-h-40 mb-6">
+              {this.state.error?.message || 'Error desconocido'}
+            </div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 transition-colors w-full"
+            >
+              Recargar Aplicación
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const AppContent: React.FC = () => {
+  // Auth State
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+
+  // App State
   const [activeTab, setActiveTab] = useState<Tab>(Tab.DASHBOARD);
-  const [wallets, setWallets] = useState<Wallet[]>(INITIAL_WALLETS);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  
+  // Persistence Safety Flag
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  
+  // Modals
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isAddWalletModalOpen, setIsAddWalletModalOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
   // Temporary state for new wallet form
   const [newWalletName, setNewWalletName] = useState('');
   const [newWalletBalance, setNewWalletBalance] = useState('');
 
+  // 1. Check for session on mount
+  useEffect(() => {
+    const sessionUser = getSessionUser();
+    if (sessionUser) {
+      setUser(sessionUser);
+      // Load User Data
+      const data = loadUserData(sessionUser.id);
+      setWallets(data.wallets);
+      setTransactions(data.transactions);
+      setIsDataLoaded(true);
+      
+      // Check tutorial status
+      if (sessionUser.hasSeenTutorial === false) {
+        setIsTutorialOpen(true);
+      }
+    }
+    setIsLoadingAuth(false);
+  }, []);
+
+  // 2. Save data whenever it changes (if user is logged in AND data has been loaded)
+  useEffect(() => {
+    if (user && isDataLoaded) {
+      saveUserData(user.id, { wallets, transactions });
+    }
+  }, [wallets, transactions, user, isDataLoaded]);
+
   // Sorting transactions by date descending
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions]);
+
+  const handleLoginSuccess = (loggedInUser: User) => {
+    // First load data, then set user to trigger UI updates
+    const data = loadUserData(loggedInUser.id);
+    setWallets(data.wallets);
+    setTransactions(data.transactions);
+    setIsDataLoaded(true);
+    setUser(loggedInUser);
+
+    if (loggedInUser.hasSeenTutorial === false) {
+      setIsTutorialOpen(true);
+    }
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setUser(null);
+    setIsDataLoaded(false);
+    setWallets([]);
+    setTransactions([]);
+    setActiveTab(Tab.DASHBOARD);
+  };
+
+  const handleTutorialClose = () => {
+    if (user) {
+      const updatedUser = { ...user, hasSeenTutorial: true };
+      setUser(updatedUser);
+      updateUser(updatedUser);
+    }
+    setIsTutorialOpen(false);
+  };
 
   const handleAddTransaction = (data: {
     amount: number;
@@ -84,8 +210,19 @@ const App: React.FC = () => {
     }
   }
 
+  // Render Loading State
+  if (isLoadingAuth) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-orange-500 animate-pulse font-bold">Cargando Kapital...</div>;
+  }
+
+  // Render Auth Screen if no user
+  if (!user) {
+    return <AuthScreen onAuthSuccess={handleLoginSuccess} />;
+  }
+
+  // Render Main App
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row animate-fade-in">
       
       {/* Mobile Navigation (Bottom) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 px-6 py-3 flex justify-between items-center shadow-lg">
@@ -141,7 +278,21 @@ const App: React.FC = () => {
           </button>
         </nav>
 
-        <div className="p-4">
+        <div className="p-4 border-t border-gray-100">
+             {/* User Mini Profile */}
+            <div className="flex items-center space-x-3 mb-4 px-2">
+                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm">
+                    {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors" title="Cerrar Sesión">
+                    <LogOut size={18} />
+                </button>
+            </div>
+
             <button 
                 onClick={() => setIsTransactionModalOpen(true)}
                 className="w-full bg-orange-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-orange-600/20 hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"
@@ -158,13 +309,22 @@ const App: React.FC = () => {
             <div>
                 <h1 className="text-3xl font-bold text-gray-800">{activeTab}</h1>
                 <p className="text-gray-500 mt-1">
-                    {activeTab === Tab.DASHBOARD && `Bienvenido de nuevo. Tienes ${wallets.length} carteras activas.`}
+                    {activeTab === Tab.DASHBOARD && `Hola, ${user.name}. Tienes ${wallets.length} carteras activas.`}
                     {activeTab === Tab.WALLETS && 'Gestiona tus cuentas y efectivo.'}
                 </p>
             </div>
             <div className="hidden md:block">
-                {/* User profile placeholder */}
-                <div className="w-10 h-10 bg-gray-200 rounded-full border-2 border-white shadow-sm"></div>
+                 {/* Desktop Logout Button (Top Right as alternative) */}
+                 <button onClick={handleLogout} className="flex items-center space-x-2 text-sm font-medium text-gray-500 hover:text-orange-600 transition-colors bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
+                    <LogOut size={16} />
+                    <span>Salir</span>
+                 </button>
+            </div>
+             {/* Mobile Logout (Top Right) */}
+             <div className="md:hidden">
+                 <button onClick={handleLogout} className="text-gray-500 hover:text-orange-600">
+                    <LogOut size={24} />
+                 </button>
             </div>
         </header>
 
@@ -246,8 +406,23 @@ const App: React.FC = () => {
                     <Settings size={32} />
                 </div>
                 <h2 className="text-xl font-bold text-gray-800">Configuración</h2>
-                <p className="text-gray-500 mt-2">Esta sección está en construcción.</p>
-                <p className="text-sm text-gray-400 mt-4">Kapital v1.0.0</p>
+                <div className="mt-6 max-w-xs mx-auto space-y-2 text-left">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 uppercase">Nombre</p>
+                        <p className="font-medium">{user.name}</p>
+                    </div>
+                     <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-500 uppercase">Email</p>
+                        <p className="font-medium">{user.email}</p>
+                    </div>
+                </div>
+                
+                <button 
+                    onClick={handleLogout}
+                    className="mt-8 px-6 py-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition-colors text-sm font-medium"
+                >
+                    Cerrar sesión
+                </button>
             </div>
         )}
       </main>
@@ -258,6 +433,11 @@ const App: React.FC = () => {
         onClose={() => setIsTransactionModalOpen(false)}
         onSubmit={handleAddTransaction}
         wallets={wallets}
+      />
+
+      <TutorialModal 
+        isOpen={isTutorialOpen}
+        onClose={handleTutorialClose}
       />
 
       {/* Add Wallet Modal (Simple Inline) */}
@@ -295,6 +475,14 @@ const App: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 };
 

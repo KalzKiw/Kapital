@@ -39,3 +39,16 @@ export interface ReceiptData {
   merchant?: string;
   category?: Category;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password?: string; // In a real app, this would be hashed or handled by auth provider
+  hasSeenTutorial?: boolean;
+}
+
+export interface UserData {
+  wallets: Wallet[];
+  transactions: Transaction[];
+}

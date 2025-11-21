@@ -1,6 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ReceiptData, Category } from "../types";
 
+// Helper safely get API Key
+const getApiKey = (): string => {
+  try {
+    // Check if process exists (Node/Bundled env)
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+    // Fallback or empty if not found
+    return '';
+  } catch (e) {
+    console.warn("Environment variable access failed", e);
+    return '';
+  }
+};
+
 // Helper to convert file to Base64
 export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
   return new Promise((resolve, reject) => {
@@ -23,12 +38,14 @@ export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { 
 
 export const analyzeReceipt = async (file: File): Promise<ReceiptData> => {
   try {
-    if (!process.env.API_KEY) {
+    const apiKey = getApiKey();
+    
+    if (!apiKey) {
       console.error("API Key is missing");
-      throw new Error("API Key no configurada");
+      throw new Error("API Key no configurada. Verifica tu entorno.");
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const imagePart = await fileToGenerativePart(file);
 
     const prompt = `
