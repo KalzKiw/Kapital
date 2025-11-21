@@ -1,0 +1,7 @@
+{
+  "name": "Kapital",
+  "description": "Gestor financiero personal inteligente con análisis de recibos por IA.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
